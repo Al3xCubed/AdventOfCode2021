@@ -7,6 +7,7 @@ import { DAY5 } from "./Day5.ts";
 import { DAY6 } from "./Day6.ts";
 import { DAY7 } from "./Day7.ts";
 import { DAY8 } from "./Day8.ts";
+import { DAY9 } from "./Day9.ts";
 
-const days: Day<any>[] = [/* DAY1, DAY2, DAY3, DAY4, DAY5, DAY6, DAY7 */ DAY5];
+const days: Day<any>[] = [/* DAY1, DAY2, DAY3, DAY4, DAY5, DAY6, DAY7, DAY8, */ DAY9];
 days.forEach((day) => day.solve());
