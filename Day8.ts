@@ -1,16 +1,12 @@
 import { Day } from "./ADay.ts";
 
-function onlyUnique<T>(value: T, index: number, self: T[]) {
-	return self.indexOf(value) === index;
-}
-
 type Segment = "a" | "b" | "c" | "d" | "e" | "f" | "g";
 
 class Digit {
 	public readonly segments: Segment[];
 
 	public constructor(digit: string) {
-		this.segments = digit.split("").filter(onlyUnique).sort() as Segment[];
+		this.segments = digit.split("").distinct().sort() as Segment[];
 	}
 
 	public get length() {

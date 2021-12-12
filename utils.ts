@@ -8,6 +8,7 @@ export function to2DArray<T>(arr: T[], width: number): T[][] {
 declare global {
 	interface Array<T> {
 		count(predicate: (value: T) => boolean): number;
+		distinct(): Array<T>;
 		product(): T;
 		sum(): T;
 	}
@@ -15,6 +16,9 @@ declare global {
 
 Array.prototype.count = function <T>(this: T[], predicate: (value: T) => boolean) {
 	return this.filter(predicate).length;
+};
+Array.prototype.distinct = function <T>(this: T[]) {
+	return this.filter((value, index) => this.indexOf(value) === index);
 };
 Array.prototype.product = function <T extends number>(this: T[]) {
 	return this.reduce((prev, curr) => prev * curr, 1);
@@ -103,5 +107,59 @@ export class Grid<T> {
 		return to2DArray(this.points, this.width)
 			.map((row) => row.map((v) => v.toString()).join(""))
 			.join("\n");
+	}
+}
+
+export class GraphNode<T> {
+	public neighbours: GraphNode<T>[] = [];
+
+	public constructor(public readonly value: T) {}
+
+	public addNeighbour(neighbour: GraphNode<T>) {
+		this.neighbours.push(neighbour);
+	}
+}
+
+export class Graph<T> {
+	private nodes: GraphNode<T>[];
+
+	public constructor(values: T[], edges: [T, T][]) {
+		this.nodes = values.map((value) => new GraphNode(value));
+
+		edges.forEach((edge) => this.addEdge(edge));
+	}
+
+	private getNode(value: T) {
+		return this.nodes.find((node) => node.value === value)!;
+	}
+
+	public addEdge(edge: [T, T]) {
+		const fromNode = this.getNode(edge[0]);
+		const toNode = this.getNode(edge[1]);
+		fromNode.addNeighbour(toNode);
+		toNode.addNeighbour(fromNode);
+	}
+
+	public getDistinctPaths(from: T, to: T, canVisitNode: (node: T, pathSoFar: T[]) => boolean) {
+		const paths: T[][] = [];
+		const fromNode = this.getNode(from);
+		const toNode = this.getNode(to);
+
+		function recur(node: GraphNode<T>, path: T[]) {
+			for (const neighbour of node.neighbours) {
+				if (!canVisitNode(neighbour.value, path)) continue;
+
+				if (neighbour === toNode) {
+					paths.push([...path, toNode.value]);
+					continue;
+				} else {
+					recur(neighbour, [...path, neighbour.value]);
+				}
+			}
+		}
+
+		recur(fromNode, [fromNode.value]);
+
+		return paths;
 	}
 }
