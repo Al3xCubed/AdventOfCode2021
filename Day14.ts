@@ -2,36 +2,47 @@ import "./utils.ts";
 import { Day } from "./ADay.ts";
 
 class Rule {
-	public constructor(public readonly seq: [string, string], public readonly insertion: string) {}
+	public constructor(public readonly pair: string, public readonly insertion: string) {}
 }
 
 class Polymer {
-	public constructor(public template: string) {}
+	private pairCounts: { [pair: string]: number };
+
+	public constructor(template: string) {
+		this.pairCounts = {};
+		for (let i = 0; i < template.length - 1; i++) {
+			const pair = template.substr(i, 2);
+			if (this.pairCounts[pair] == undefined) this.pairCounts[pair] = 0;
+			this.pairCounts[pair]++;
+		}
+	}
 
 	public get counts() {
 		const counts: { [char: string]: number } = {};
-		for (let i = 0; i < this.template.length; i++) {
-			const char = this.template[i];
-			if (counts[char] == undefined) counts[char] = 0;
-			counts[char]++;
-		}
+		Object.entries(this.pairCounts).forEach(([pair, count]) => {
+			const [a, b] = pair.split("");
+			if (counts[a] == undefined) counts[a] = 0;
+			if (counts[b] == undefined) counts[b] = 0;
+			counts[a] += count / 2;
+			counts[b] += count / 2;
+		});
+		Object.keys(counts).forEach((char) => (counts[char] = Math.round(counts[char])));
 		return counts;
 	}
 
 	public applyRules(rules: Rule[]) {
-		let newTempl = "";
-		for (let i = 0; i < this.template.length - 1; i++) {
-			for (const rule of rules) {
-				if (rule.seq[0] !== this.template[i] || rule.seq[1] !== this.template[i + 1])
-					continue;
+		const newPairCounts: { [pair: string]: number } = {};
+		for (const rule of rules) {
+			if (this.pairCounts[rule.pair] == undefined) this.pairCounts[rule.pair] = 0;
 
-				newTempl += this.template[i];
-				newTempl += rule.insertion;
-				break;
-			}
+			const newPairA = `${rule.pair.substr(0, 1)}${rule.insertion}`;
+			const newPairB = `${rule.insertion}${rule.pair.substr(1, 1)}`;
+			if (newPairCounts[newPairA] == undefined) newPairCounts[newPairA] = 0;
+			if (newPairCounts[newPairB] == undefined) newPairCounts[newPairB] = 0;
+			newPairCounts[newPairA] += this.pairCounts[rule.pair];
+			newPairCounts[newPairB] += this.pairCounts[rule.pair];
 		}
-		newTempl += this.template[this.template.length - 1];
-		this.template = newTempl;
+		this.pairCounts = newPairCounts;
 	}
 }
 
@@ -42,7 +53,7 @@ export const DAY14 = new Day(
 		const template = new Polymer(templateStr);
 		const rules = rulesStr.split("\n").map((rule) => {
 			const [seq, insertion] = rule.split(" -> ");
-			return new Rule(seq.split("") as [string, string], insertion);
+			return new Rule(seq, insertion);
 		});
 		return { template, rules };
 	},
@@ -55,5 +66,14 @@ export const DAY14 = new Day(
 			const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
 			return sorted[0][1] - sorted[sorted.length - 1][1];
 		},
+		({ template, rules }) => {
+			for (let i = 0; i < 40; i++) {
+				template.applyRules(rules);
+			}
+			const counts = template.counts;
+			const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+			return sorted[0][1] - sorted[sorted.length - 1][1];
+		},
 	],
+	true,
 );
