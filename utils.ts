@@ -8,8 +8,11 @@ export function to2DArray<T>(arr: T[], width: number): T[][] {
 declare global {
 	interface Array<T> {
 		count(predicate: (value: T) => boolean): number;
+		diff(other: Array<T>): Array<T>;
 		distinct(): Array<T>;
+		intersect(other: Array<T>): Array<T>;
 		product(): T;
+		remove(value: T): void;
 		sum(): T;
 		transpose(): Array<T>;
 	}
@@ -18,11 +21,21 @@ declare global {
 Array.prototype.count = function <T>(this: T[], predicate: (value: T) => boolean) {
 	return this.filter(predicate).length;
 };
+Array.prototype.diff = function <T>(this: T[], other: T[]) {
+	return this.filter((value) => !other.includes(value));
+};
 Array.prototype.distinct = function <T>(this: T[]) {
 	return this.filter((value, index) => this.indexOf(value) === index);
 };
+Array.prototype.intersect = function <T>(this: T[], other: T[]) {
+	return this.filter((value) => other.includes(value));
+};
 Array.prototype.product = function <T extends number>(this: T[]) {
 	return this.reduce((prev, curr) => prev * curr, 1);
+};
+Array.prototype.remove = function <T>(this: T[], value: T) {
+	this.splice(this.indexOf(value), 1);
+	return this;
 };
 Array.prototype.sum = function <T extends number>(this: T[]) {
 	return this.reduce((prev, curr) => prev + curr, 0);
@@ -98,23 +111,32 @@ export class Grid<T> {
 	public getNeighbours(value: T, includeDiagonals: boolean): T[];
 	public getNeighbours(point: GridPoint<T>, includeDiagonals: boolean): T[];
 	public getNeighbours(pointOrValue: GridPoint<T> | T, includeDiagonals: boolean): T[] {
-		const neighbours: T[] = [];
+		return this.getNeighbourPoints(pointOrValue as T, includeDiagonals).map(
+			(neighbour) => neighbour.value,
+		);
+	}
+
+	private getNeighbourPoints(value: T, includeDiagonals: boolean): GridPoint<T>[];
+	private getNeighbourPoints(point: GridPoint<T>, includeDiagonals: boolean): GridPoint<T>[];
+	private getNeighbourPoints(
+		pointOrValue: GridPoint<T> | T,
+		includeDiagonals: boolean,
+	): GridPoint<T>[] {
+		const neighbours: GridPoint<T>[] = [];
 		for (let dx = -1; dx <= 1; dx++) {
 			for (let dy = -1; dy <= 1; dy++) {
 				if (dx === 0 && dy === 0) continue;
 				if (!includeDiagonals && Math.abs(dx) + Math.abs(dy) === 2) continue;
 
 				const point =
-					pointOrValue instanceof GridPoint
-						? pointOrValue
-						: this.points.find((point) => point.value === pointOrValue)!;
+					pointOrValue instanceof GridPoint ? pointOrValue : this.getPoint(pointOrValue);
 				const x = point.x + dx;
 				const y = point.y + dy;
 
 				if (x < 0 || x >= this.width) continue;
 				if (y < 0 || y >= this.height) continue;
 
-				neighbours.push(this.gridPoints[x][y].value);
+				neighbours.push(this.gridPoints[x][y]);
 			}
 		}
 		return neighbours;
@@ -143,6 +165,59 @@ export class Grid<T> {
 				this.gridPoints[y][x].y = y;
 			}
 		}
+	}
+
+	private getPoint(value: T) {
+		return this.points.find((p) => p.value === value)!;
+	}
+
+	public get(x: number, y: number) {
+		return this.gridPoints[x][y].value;
+	}
+
+	public dijkstra(origin: T, length: (from: T, to: T) => number) {
+		const q: GridPoint<T>[] = [];
+		const dist: Map<GridPoint<T>, number> = new Map<GridPoint<T>, number>();
+		const prev: Map<GridPoint<T>, GridPoint<T> | undefined> = new Map<
+			GridPoint<T>,
+			GridPoint<T> | undefined
+		>();
+		for (const point of this.points) {
+			dist.set(point, Number.POSITIVE_INFINITY);
+			prev.set(point, undefined);
+			q.push(point);
+		}
+		const originPoint = this.getPoint(origin);
+		dist.set(originPoint, 0);
+
+		while (q.length > 0) {
+			const u = q.sort((a, b) => dist.get(a)! - dist.get(b)!)[0];
+			q.remove(u);
+
+			for (const neighbour of this.getNeighbourPoints(u, false).intersect(q)) {
+				const alt = dist.get(u)! + length(u.value, neighbour.value);
+				if (alt < dist.get(neighbour)!) {
+					dist.set(neighbour, alt);
+					prev.set(neighbour, u);
+				}
+			}
+		}
+
+		return { dist, prev };
+	}
+
+	public shortestPath(source: T, target: T, length: (from: T, to: T) => number) {
+		const { dist, prev } = this.dijkstra(source, length);
+
+		const path: T[] = [];
+		let u: T | undefined = target;
+		if (prev.has(this.getPoint(u)) || u == source) {
+			while (u != undefined) {
+				path.splice(0, 0, u);
+				u = prev.get(this.getPoint(u))?.value;
+			}
+		}
+		return path;
 	}
 
 	public print() {
