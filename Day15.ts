@@ -31,5 +31,29 @@ export const DAY15 = new Day(
 			);
 			return path.map((step) => step.riskLevel).sum() - path[0].riskLevel;
 		},
+		(cave) => {
+			const values: Position[] = [];
+			for (const row of cave.rows) {
+				for (let i = 0; i < 5; i++) {
+					values.push(
+						...row.map((pos) => new Position(((pos.riskLevel - 1 + i) % 9) + 1)),
+					);
+				}
+			}
+			const valuesSoFar = [...values];
+			for (let i = 1; i < 5; i++) {
+				values.push(
+					...valuesSoFar.map((pos) => new Position(((pos.riskLevel - 1 + i) % 9) + 1)),
+				);
+			}
+
+			const bigCave = new Cave(5 * cave.width, 5 * cave.height, values);
+			const path = bigCave.shortestPath(
+				bigCave.get(0, 0),
+				bigCave.get(bigCave.width - 1, bigCave.height - 1),
+				(from, to) => to.riskLevel,
+			);
+			return path.map((step) => step.riskLevel).sum() - path[0].riskLevel;
+		},
 	],
 );

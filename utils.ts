@@ -190,9 +190,18 @@ export class Grid<T> {
 		const originPoint = this.getPoint(origin);
 		dist.set(originPoint, 0);
 
+		const totalPoints = q.length;
+		let percent = Math.round(((totalPoints - q.length) / totalPoints) * 100);
+
 		while (q.length > 0) {
 			const u = q.sort((a, b) => dist.get(a)! - dist.get(b)!)[0];
 			q.remove(u);
+
+			const newPercent = Math.round(((totalPoints - q.length) / totalPoints) * 100);
+			if (newPercent !== percent) {
+				percent = newPercent;
+				console.log(`${percent}%`);
+			}
 
 			for (const neighbour of this.getNeighbourPoints(u, false).intersect(q)) {
 				const alt = dist.get(u)! + length(u.value, neighbour.value);
