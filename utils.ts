@@ -44,11 +44,33 @@ Array.prototype.transpose = function <T extends []>(this: T[]) {
 	return this[0].map((x, i) => this.map((x) => x[i]));
 };
 
-export class Point {
+export class Vector2 {
 	public constructor(public x: number, public y: number) {}
+
+	public static get zero() {
+		return new Vector2(0, 0);
+	}
+
+	public add(other: Vector2) {
+		this.x += other.x;
+		this.y += other.y;
+	}
 }
 
-export class GridPoint<T> extends Point {
+export class Range {
+	public constructor(public min: number, public max: number) {}
+
+	public contains(value: number) {
+		return value >= this.min && value <= this.max;
+	}
+
+	public static parse(input: string) {
+		const [min, max] = input.split("..").map((v) => parseInt(v));
+		return new Range(min, max);
+	}
+}
+
+export class GridPoint<T> extends Vector2 {
 	public value: T;
 
 	public constructor(x: number, y: number, value: T) {

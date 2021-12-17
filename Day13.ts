@@ -1,6 +1,6 @@
 import "./utils.ts";
 import { Day } from "./ADay.ts";
-import { Grid, Point } from "./utils.ts";
+import { Grid, Vector2 } from "./utils.ts";
 
 class Fold {
 	public constructor(public readonly axis: "x" | "y", public readonly value: number) {}
@@ -26,7 +26,7 @@ class Mark {
 class Paper {
 	private grid: Grid<Mark>;
 
-	public constructor(marks: Point[]) {
+	public constructor(marks: Vector2[]) {
 		const width = Math.max(...marks.map((mark) => mark.x)) + 1;
 		const height = Math.max(...marks.map((mark) => mark.y)) + 1;
 
@@ -86,7 +86,7 @@ export const DAY13 = new Day(
 		const [marksStr, foldsStr] = input.split("\n\n");
 		const marks = marksStr.split("\n").map((mark) => {
 			const markN = mark.split(",").map((n) => parseInt(n));
-			return new Point(markN[0], markN[1]);
+			return new Vector2(markN[0], markN[1]);
 		});
 		const folds = foldsStr.split("\n").map((fold) => Fold.parse(fold));
 
