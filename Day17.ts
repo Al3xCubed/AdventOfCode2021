@@ -71,5 +71,6 @@ export const DAY17 = new Day(
 			);
 			return max;
 		},
+		(target) => Trajectory.findTrajectoriesForTarget(target).length,
 	],
 );
