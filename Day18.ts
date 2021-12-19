@@ -224,5 +224,18 @@ export const DAY18 = new Day(
 	(input) => {
 		return input.split("\n").map((n) => SnailfishNumber.parse(n));
 	},
-	[(numbers) => numbers.reduce((prev, curr) => prev.add(curr), numbers[0]).magnitude],
+	[
+		(numbers) => numbers.reduce((prev, curr) => prev.add(curr), numbers[0]).magnitude,
+		(numbers) => {
+			let maxMag = Number.NEGATIVE_INFINITY;
+			for (let i = 0; i < numbers.length; i++) {
+				for (let j = 0; j < numbers.length; j++) {
+					if (i === j) continue;
+
+					maxMag = Math.max(maxMag, numbers[i].add(numbers[j]).magnitude);
+				}
+			}
+			return maxMag;
+		},
+	],
 );
