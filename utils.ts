@@ -237,6 +237,10 @@ export class Matrix3x3 {
 export class Range {
 	public constructor(public min: number, public max: number) {}
 
+	public get length() {
+		return this.max - this.min + 1;
+	}
+
 	public contains(value: number) {
 		return value >= this.min && value <= this.max;
 	}
