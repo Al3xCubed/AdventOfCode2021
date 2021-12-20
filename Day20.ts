@@ -108,9 +108,16 @@ export const DAY20 = new Day(
 	},
 	[
 		({ filter, image }) => {
-			const enhanced1 = image.enhance(filter);
-			const enhanced2 = enhanced1.enhance(filter);
-			return enhanced2.numberOfLitPixels;
+			for (let i = 0; i < 2; i++) {
+				image = image.enhance(filter);
+			}
+			return image.numberOfLitPixels;
+		},
+		({ filter, image }) => {
+			for (let i = 0; i < 50; i++) {
+				image = image.enhance(filter);
+			}
+			return image.numberOfLitPixels;
 		},
 	],
 );
