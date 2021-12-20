@@ -151,5 +151,17 @@ export const DAY19 = new Day(
 			);
 			return beaconPositions.size;
 		},
+		(scanners) => {
+			let largestManhattanDistance = 0;
+			for (let i = 1; i < scanners.length; i++) {
+				for (let j = 0; j < i; j++) {
+					largestManhattanDistance = Math.max(
+						largestManhattanDistance,
+						Vector3.manhattan(scanners[i].position!, scanners[j].position!),
+					);
+				}
+			}
+			return largestManhattanDistance;
+		},
 	],
 );

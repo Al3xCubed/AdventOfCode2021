@@ -148,6 +148,10 @@ export class Vector3 {
 		return a.clone().sub(b);
 	}
 
+	public static manhattan(a: Vector3, b: Vector3) {
+		return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z);
+	}
+
 	public static equals(a: Vector3, b: Vector3) {
 		return a.equals(b);
 	}
